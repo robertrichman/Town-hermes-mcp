@@ -102,6 +102,7 @@ Pick whichever the client's UI supports — both auth paths coexist on the same 
 | **Claude Desktop / Claude.ai (web + mobile)** | OAuth | Settings → Connectors → Add custom connector → paste the server URL + your `OAUTH_CLIENT_ID` + your `OAUTH_CLIENT_SECRET`. (The secret is accepted but no longer enforced server-side; the field is still required by Claude's UI, so set it.) |
 | **OpenAI Codex desktop** | Bearer | Settings → MCP → Connect to a custom MCP → Streamable HTTP → URL = your tunnel + `/mcp`, **Bearer token env var** = name of an OS env var on your laptop that holds your `MCP_BEARER_TOKEN` value. Restart Codex desktop after setting the env var so it's inherited. Skips OAuth entirely. |
 | **Cursor** | Bearer | Settings → MCP → Add custom MCP → paste the JSON below into `~/.cursor/mcp.json`. No OAuth flow, no extra config. |
+| **Town** | OAuth | Settings → MCP → Add Server → URL = your public bridge URL + `/mcp` → complete OAuth. Enable the server only for the routines that need it. See the [Town + Hostinger guide](docs/town-hostinger.md). |
 
 #### Cursor — exact `~/.cursor/mcp.json` snippet
 
@@ -164,10 +165,16 @@ Most MCP clients enforce a per-tool-call timeout: Claude.ai / Claude Desktop is 
 
 ```jsonc
 // hermes_ask(prompt="...", async_mode=true) returns immediately:
-{"job_id": "8a3f...e21", "status": "pending"}
+{"job_id": "8a3f...e21", "status": "pending", "completion_scope": "gateway_response"}
 ```
 
 Then poll `hermes_check(job_id)` until `status` is `completed`, `failed`, or `cancelled`. Hermes keeps running in the background regardless of whether you poll. Jobs are stored in-memory for ~24 hours and lost on a server restart.
+
+Every async response includes `completion_scope: "gateway_response"`. A `completed` job
+means the Hermes gateway returned a response. If that response is a receipt for work
+delegated to a separate worker, queue, CI run, or deployment, query that downstream state
+before telling the user the work is complete. Reuse the same `session_id` for that status
+request; do not resubmit the original instruction merely because the bridge job ended.
 
 **When to use async** — the calling LLM reads heuristics from the tool description and should pick the right mode on its own, but the rules of thumb are:
 
@@ -190,14 +197,14 @@ If you want to force the choice, just say so in your prompt: *"use `async_mode=t
 Returns a JSON string with the current status of an async job:
 
 ```jsonc
-{"job_id": "8a3f...e21", "status": "completed", "created_at": 1747...,
+{"job_id": "8a3f...e21", "status": "completed", "completion_scope": "gateway_response", "created_at": 1747...,
  "finished_at": 1747..., "prompt_chars": 12303, "session_id": "...",
  "result": "..."}
-{"job_id": "8a3f...e21", "status": "failed",    "error":  "...", ...}
-{"job_id": "8a3f...e21", "status": "cancelled", ...}
-{"job_id": "8a3f...e21", "status": "running",   ...}
-{"job_id": "8a3f...e21", "status": "pending",   ...}
-{"job_id": "<your-input>", "status": "unknown"} // never issued by this server, reaped after 24h, or wiped by hermes_reset
+{"job_id": "8a3f...e21", "status": "failed",    "completion_scope": "gateway_response", "error":  "...", ...}
+{"job_id": "8a3f...e21", "status": "cancelled", "completion_scope": "gateway_response", ...}
+{"job_id": "8a3f...e21", "status": "running",   "completion_scope": "gateway_response", ...}
+{"job_id": "8a3f...e21", "status": "pending",   "completion_scope": "gateway_response", ...}
+{"job_id": "<your-input>", "status": "unknown", "completion_scope": "gateway_response"} // never issued by this server, reaped after 24h, or wiped by hermes_reset
 ```
 
 `created_at` and `finished_at` are epoch seconds — the calling LLM can subtract them to show "running for N minutes" in chat.
@@ -231,6 +238,11 @@ Expired terminal jobs (older than the 24h TTL) are reaped lazily before counting
 ## Network exposure: `cloudflared`
 
 Recommended. Free, open-source, no bandwidth cap that matters at personal scale.
+
+If Hermes Agent already runs under Docker behind Traefik, including Hostinger's Docker
+Manager, use the [Town + Hostinger Docker/Traefik guide](docs/town-hostinger.md). It includes
+a container image, Compose example, public-route checks, durable-session guidance, and the
+router-label placement that prevents a healthy deployment from returning `502`.
 
 There are two flavors. Use the **quick tunnel** to test today; use the **named tunnel** for any setup you want to leave running.
 

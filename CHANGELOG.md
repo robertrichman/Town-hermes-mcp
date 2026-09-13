@@ -7,7 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Pin the Model Context Protocol SDK below 2.0 so a clean install does not
+  select the incompatible 2.x API, where `FastMCP` was renamed.
+
 ### Added
+- Docker image and Traefik Compose example for running the bridge beside a
+  containerized Hermes gateway, plus a Town/Hostinger setup and verification
+  guide.
+- `completion_scope: "gateway_response"` in async job responses so callers do
+  not mistake a bridge response for completion of separately delegated work.
 - **Static bearer-token auth as an alternative to OAuth.** New optional
   env var `MCP_BEARER_TOKEN` (32+ chars). When set, the server accepts
   `Authorization: Bearer <MCP_BEARER_TOKEN>` directly at /mcp, in
