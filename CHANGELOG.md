@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Docker image and Traefik Compose example for running the bridge beside a
   containerized Hermes gateway, plus a Town/Hostinger setup and verification
   guide.
+- Hostinger sidecar Compose example for the managed Hermes application's
+  shared-network-namespace deployment pattern.
 - `completion_scope: "gateway_response"` in async job responses so callers do
   not mistake a bridge response for completion of separately delegated work.
 - **Static bearer-token auth as an alternative to OAuth.** New optional
