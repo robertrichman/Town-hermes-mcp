@@ -29,7 +29,7 @@ from pydantic import AnyHttpUrl
 
 from .config import Config, LogLevel
 from .hermes_client import HermesClient, HermesError
-from .jobs import JobStore
+from .jobs import COMPLETION_SCOPE, JobStore
 from .oauth import StaticClientProvider
 
 UvicornLogLevel = Literal["critical", "error", "warning", "info", "debug"]
@@ -95,17 +95,21 @@ Args:
       - You confidently expect the response in under ~30 seconds
       - There are no Telegram-approval-gated tools likely to fire
 
-  Async behavior: `hermes_ask` returns a JSON string
-  `{"job_id":"...","status":"pending"}` immediately. Hermes runs in the
-  background. Poll `hermes_check(job_id)` every 5-10 seconds (not faster)
-  for the result. Call `hermes_cancel(job_id)` if the user no longer
-  wants the result — note this RELEASES the bookkeeping but does NOT
-  stop the gateway from running; side effects already started will
-  continue.
+  Async behavior: `hermes_ask` returns a JSON string containing a job id,
+  `status: pending`, and `completion_scope: gateway_response` immediately.
+  Poll `hermes_check(job_id)` every 5-10 seconds (not faster) for the
+  result. A `completed` bridge job proves only that the Hermes gateway
+  returned a response. If that response says work was delegated to a
+  downstream worker, queue, or service, use the same `session_id` to ask
+  Hermes for current downstream state before reporting that work complete.
+  Call `hermes_cancel(job_id)` if the user no longer wants the result —
+  note this RELEASES the bookkeeping but does NOT stop the gateway from
+  running; side effects already started will continue.
 
 Returns:
   Sync mode: Hermes's final answer text.
-  Async mode: JSON string `{"job_id":"<id>","status":"pending"}`.
+  Async mode: JSON string containing `job_id`, `status: pending`, and
+    `completion_scope: gateway_response`.
 """
 
 _CHECK_TOOL_DESCRIPTION = """\
@@ -127,13 +131,18 @@ Args:
 
 Returns:
   JSON string with `job_id`, `status` (one of `pending`, `running`,
-  `completed`, `failed`, `cancelled`, `unknown`), `created_at` (epoch
-  seconds), `prompt_chars`, and:
+  `completed`, `failed`, `cancelled`, `unknown`), `completion_scope`
+  (`gateway_response`), `created_at` (epoch seconds), `prompt_chars`, and:
     - `session_id` if the caller supplied one
     - `finished_at` (epoch seconds) once terminal
     - `result` on completed
     - `error` on failed
   Jobs are kept ~24 hours after they reach a terminal state.
+
+  `status: completed` applies to the gateway request only. If `result`
+  reports that Hermes handed work to another worker, queue, or service,
+  query that downstream state separately before declaring the user's work
+  complete.
 """
 
 _RESET_TOOL_DESCRIPTION = """\
@@ -308,13 +317,25 @@ def build_app(
             daemon=True,
         )
         thread.start()
-        return json.dumps({"job_id": job.job_id, "status": "pending"})
+        return json.dumps(
+            {
+                "job_id": job.job_id,
+                "status": "pending",
+                "completion_scope": COMPLETION_SCOPE,
+            }
+        )
 
     @mcp.tool(description=_CHECK_TOOL_DESCRIPTION)
     def hermes_check(job_id: str) -> str:
         job = job_store.get(job_id)
         if job is None:
-            return json.dumps({"job_id": job_id, "status": "unknown"})
+            return json.dumps(
+                {
+                    "job_id": job_id,
+                    "status": "unknown",
+                    "completion_scope": COMPLETION_SCOPE,
+                }
+            )
         return json.dumps(job.to_dict())
 
     @mcp.tool(description=_RESET_TOOL_DESCRIPTION)
@@ -332,7 +353,13 @@ def build_app(
             # is impossible: mark_cancelled would have just set finished_at,
             # and the reap window is 24h, so a freshly-cancelled job cannot
             # vanish here).
-            return json.dumps({"job_id": job_id, "status": "unknown"})
+            return json.dumps(
+                {
+                    "job_id": job_id,
+                    "status": "unknown",
+                    "completion_scope": COMPLETION_SCOPE,
+                }
+            )
         if changed:
             logger.info("async job %s cancelled by caller", job_id)
         return json.dumps(job.to_dict())

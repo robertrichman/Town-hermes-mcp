@@ -181,6 +181,7 @@ def test_async_mode_returns_pending_job_id_immediately() -> None:
     out = ask_tool.fn(prompt="hi", session_id=None, toolsets=None, async_mode=True)
     payload = json.loads(out)
     assert payload["status"] == "pending"
+    assert payload["completion_scope"] == "gateway_response"
     assert "job_id" in payload
     # Worker must already be running by the time hermes_ask returns.
     assert started.wait(timeout=1.0)
@@ -207,6 +208,7 @@ def test_hermes_check_returns_completed_result() -> None:
 
     result_payload = json.loads(check_tool.fn(job_id=submit_payload["job_id"]))
     assert result_payload["status"] == "completed"
+    assert result_payload["completion_scope"] == "gateway_response"
     assert result_payload["result"] == "the answer"
     assert "error" not in result_payload
 
@@ -269,7 +271,11 @@ def test_hermes_check_unknown_job_id() -> None:
     assert check_tool is not None
 
     result = json.loads(check_tool.fn(job_id="not-a-real-id"))
-    assert result == {"job_id": "not-a-real-id", "status": "unknown"}
+    assert result == {
+        "job_id": "not-a-real-id",
+        "status": "unknown",
+        "completion_scope": "gateway_response",
+    }
 
 
 def test_sync_mode_unchanged() -> None:
@@ -384,7 +390,11 @@ def test_hermes_cancel_unknown_job_id() -> None:
     cancel_tool = mcp._tool_manager.get_tool("hermes_cancel")
     assert cancel_tool is not None
     payload = json.loads(cancel_tool.fn(job_id="not-a-real-id"))
-    assert payload == {"job_id": "not-a-real-id", "status": "unknown"}
+    assert payload == {
+        "job_id": "not-a-real-id",
+        "status": "unknown",
+        "completion_scope": "gateway_response",
+    }
 
 
 def test_build_app_registers_hermes_reset() -> None:
@@ -418,7 +428,11 @@ def test_hermes_reset_clears_all_jobs_and_reports_counts() -> None:
     assert payload["by_status"] == {"completed": 2}
     # Post-reset, both ids are unknown.
     for jid in (a["job_id"], b["job_id"]):
-        assert json.loads(check_tool.fn(job_id=jid)) == {"job_id": jid, "status": "unknown"}
+        assert json.loads(check_tool.fn(job_id=jid)) == {
+            "job_id": jid,
+            "status": "unknown",
+            "completion_scope": "gateway_response",
+        }
 
 
 def test_hermes_reset_on_empty_store() -> None:
