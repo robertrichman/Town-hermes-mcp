@@ -120,6 +120,9 @@ Town's current custom-integration flow is:
 4. Enable this MCP server only on the routines that need Hermes.
 5. Run a read-only supervised request before allowing an execution routine to use it.
 
+For a reusable project front desk, adapt the
+[durable Hermes Project Lead routine template](town-routine-template.md).
+
 Town documents its OAuth callback as
 `https://www.town.com/api/mcp/oauth/callback` and notes that some providers also need
 `https://town.com/api/mcp/oauth/callback`. `hermes-mcp` accepts HTTPS redirect URIs, so no

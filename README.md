@@ -241,8 +241,12 @@ Recommended. Free, open-source, no bandwidth cap that matters at personal scale.
 
 If Hermes Agent already runs under Docker behind Traefik, including Hostinger's Docker
 Manager, use the [Town + Hostinger Docker/Traefik guide](docs/town-hostinger.md). It includes
-a container image, Compose example, public-route checks, durable-session guidance, and the
+a container image, two Compose patterns, public-route checks, durable-session guidance, and the
 router-label placement that prevents a healthy deployment from returning `502`.
+
+Town users can also adapt the
+[durable Hermes Project Lead routine template](docs/town-routine-template.md) as a guarded,
+single-session front desk for a project.
 
 There are two flavors. Use the **quick tunnel** to test today; use the **named tunnel** for any setup you want to leave running.
 
