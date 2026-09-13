@@ -4,6 +4,11 @@
 
 Use Claude (or another supported MCP client) as your daily chat. When you ask for something Hermes is built for — scheduling cron jobs, browser automation, email, document creation, persistent skills, WhatsApp/Slack messaging — your client calls Hermes through this bridge.
 
+> **Do not write code?** Start with the
+> [plain-language setup and verification guide](docs/non-coder-start-here.md). It explains
+> what each component does, the shortest Hostinger-and-Town path, how to test it safely,
+> and what common errors mean.
+
 ```
 ┌──────────────────────────────────────────────────────┐
 │ MCP client                                           │

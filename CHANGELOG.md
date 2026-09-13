@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   shared-network-namespace deployment pattern.
 - Reusable Town routine template for durable-session routing, explicit status states,
   authority boundaries, source reconciliation, and duplicate-work prevention.
+- Plain-language start guide for non-coders using Town and Hostinger.
 - `completion_scope: "gateway_response"` in async job responses so callers do
   not mistake a bridge response for completion of separately delegated work.
 - **Static bearer-token auth as an alternative to OAuth.** New optional
