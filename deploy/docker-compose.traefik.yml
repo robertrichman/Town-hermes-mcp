@@ -4,11 +4,14 @@ services:
       context: ..
       dockerfile: Dockerfile
     restart: unless-stopped
+    volumes:
+      - hermes-mcp-jobs:/var/lib/hermes-mcp
     env_file:
       - ${HERMES_MCP_ENV_FILE:-./hermes-mcp.env}
     environment:
       BIND_HOST: 0.0.0.0
       BIND_PORT: 8765
+      HERMES_MCP_JOB_STORE_PATH: /var/lib/hermes-mcp/jobs.sqlite3
       HERMES_API_URL: ${HERMES_API_URL:-http://hermes-agent:8642}
       MCP_ALLOWED_HOSTS: ${MCP_HOSTNAME:?set MCP_HOSTNAME}
       OAUTH_ISSUER_URL: https://${MCP_HOSTNAME:?set MCP_HOSTNAME}
@@ -33,3 +36,6 @@ networks:
   edge:
     external: true
     name: ${TRAEFIK_NETWORK:?set TRAEFIK_NETWORK}
+
+volumes:
+  hermes-mcp-jobs:

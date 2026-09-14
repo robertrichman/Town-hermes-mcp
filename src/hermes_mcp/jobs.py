@@ -5,10 +5,9 @@ a job, returns its id immediately, and runs the gateway call in a background
 thread. The caller polls `hermes_check(job_id)` to retrieve the result, or
 calls `hermes_cancel(job_id)` to release the result (see warning below).
 
-This sits next to OAuth state in `oauth.py`: in-memory only, by design. A
-server restart loses every in-flight or completed job — documented in
-`README.md`. Persisting to disk is on the v0.4.0 roadmap if it turns out to
-bite users.
+The production server uses PersistentJobStore (persistent_jobs.py), which
+shares this Job record format. This in-memory implementation remains available
+for isolated tests and explicit dependency injection. OAuth state is separate.
 
 About "cancellation": Python threads cannot be safely killed mid-IO, so
 `mark_cancelled` is a **tombstone**. It updates this server's bookkeeping

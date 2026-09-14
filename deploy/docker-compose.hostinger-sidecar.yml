@@ -6,12 +6,15 @@ services:
       context: ${HERMES_MCP_BUILD_CONTEXT:?set HERMES_MCP_BUILD_CONTEXT}
       dockerfile: ${HERMES_MCP_DOCKERFILE:-Dockerfile}
     restart: unless-stopped
+    volumes:
+      - hermes-mcp-jobs:/var/lib/hermes-mcp
     network_mode: service:hermes-agent
     env_file:
       - ${HERMES_MCP_ENV_FILE:-./hermes-mcp.env}
     environment:
       BIND_HOST: 0.0.0.0
       BIND_PORT: 8765
+      HERMES_MCP_JOB_STORE_PATH: /var/lib/hermes-mcp/jobs.sqlite3
       HERMES_API_URL: ${HERMES_API_URL:-http://127.0.0.1:8642}
       MCP_ALLOWED_HOSTS: ${MCP_HOSTNAME:?set MCP_HOSTNAME}
       OAUTH_ISSUER_URL: https://${MCP_HOSTNAME:?set MCP_HOSTNAME}
@@ -24,3 +27,6 @@ services:
       traefik.http.routers.hermes-mcp.service: hermes-mcp
       traefik.http.routers.hermes-mcp.tls.certresolver: ${TRAEFIK_CERT_RESOLVER:?set TRAEFIK_CERT_RESOLVER}
       traefik.http.services.hermes-mcp.loadbalancer.server.port: "8765"
+
+volumes:
+  hermes-mcp-jobs:

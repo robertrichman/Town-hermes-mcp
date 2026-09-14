@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+- Keep MCP responsive during a long synchronous-mode Hermes request using async HTTP.
+- Persist job results in SQLite across restarts; retain interrupted jobs with an explicit
+  unconfirmed outcome and never automatically replay work.
+- Configure short-I/O executor capacity (16 threads by default), keeping one server worker.
+- Preserve Town completion-scope metadata and existing bearer/OAuth behavior.
+- Add durable Docker volumes, a writable systemd database path, and an upgrade guide.
+- Add concurrency, restart, state-transition, timeout/error, and configuration regression tests.
+
 ## [Unreleased]
 
 ### Fixed
