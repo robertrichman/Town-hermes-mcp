@@ -1,6 +1,6 @@
 # Start here if you do not write code
 
-`hermes-mcp` is a connector. It lets an assistant such as Town send a request to a Hermes
+**Town ↔ Hermes Connector** is this Town-focused fork of `hermes-mcp`. It lets Town send a request to a Hermes
 Agent that runs on your server, and then receive Hermes's reply.
 
 ```text
@@ -97,3 +97,13 @@ session for current downstream status and consult the system that owns the facts
 - **Durable session:** One stable Hermes conversation identity reused for the same role.
 - **Gateway response:** Hermes has answered the connector, although separately delegated
   work may still be running.
+
+## What this does not install
+
+This is not a ready-made coding team. Worker dispatch, task tracking, specifications,
+review, and previews must be configured separately. A stable session ID does not guarantee
+accurate memory. Use the [verification checklist](town-verification.md) to distinguish
+connection success from useful delivery.
+
+Install from [this fork](https://github.com/robertrichman/hermes-mcp), following the Town
+setup guide; the generic PyPI package is not this fork.
