@@ -67,3 +67,9 @@ send one bounded authorized instruction and verify that it creates only the expe
 
 This template guides Town; it does not enforce worker state or QA correctness in code.
 Use the [verification checklist](town-verification.md) to qualify your own workflow.
+
+## Optional notifications initiated by Hermes
+
+See the [AgentMail companion guide](agentmail-notifications.md) for the outbound
+Hermes → AgentMail → Town path, including a notification routine and supervised tests.
+This is separate from MCP request/reply handling and requires its own setup.
