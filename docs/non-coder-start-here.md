@@ -107,3 +107,9 @@ connection success from useful delivery.
 
 Install from [this fork](https://github.com/robertrichman/hermes-mcp), following the Town
 setup guide; the generic PyPI package is not this fork.
+
+## Optional notifications initiated by Hermes
+
+See the [AgentMail companion guide](agentmail-notifications.md) for the outbound
+Hermes → AgentMail → Town path, including a notification routine and supervised tests.
+This is separate from MCP request/reply handling and requires its own setup.
