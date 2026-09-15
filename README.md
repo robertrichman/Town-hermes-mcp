@@ -18,6 +18,10 @@ You → Town → this connector → Hermes Agent
 - **Checking whether it works?** Use the [verification checklist and limitations](docs/town-verification.md).
 - **Updating an existing installation?** Follow the [upgrade guide](docs/upgrading.md).
 
+## Optional notifications back to Town
+
+For later worker completion or blocked-work alerts, see the [AgentMail companion guide](docs/agentmail-notifications.md): **Hermes → AgentMail → Town**. It includes setup requirements, a copy-paste Town routine, duplicate suppression, and supervised tests. It requires separate configuration and is not needed for ordinary MCP replies. This guide is a post-v0.4.1.dev1 addition on main; the published preview archive is unchanged.
+
 ## Get this version
 
 Use this repository directly. Installing the package by name from PyPI does not select this fork.
