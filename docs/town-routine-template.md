@@ -25,8 +25,23 @@ session, branch, or deployment.
 Use synchronous mode for a bounded read-only status or judgment request expected to finish
 quickly. Use asynchronous mode for multi-step execution. If an async hermes-mcp job says
 completed, treat that as completion of the Hermes gateway response only. If the response
-is a handoff or receipt for downstream work, make one synchronous follow-up using the same
-session ID and ask for the current downstream state. Do not resubmit the original request.
+is a handoff or receipt for downstream work, preserve its downstream tracking reference and consult the system that records that
+execution route. Ask Hermes through the same session when interpretation or tool access
+is needed. Choose async mode if that follow-up may be slow; do not force a synchronous call. Do not resubmit the original request.
+
+Before dispatch, confirm the configured route supports the assignment and can access its
+required inputs. Do not silently substitute an untracked route. If this cannot be established,
+report the limitation before starting work.
+
+Report WORKING only when there is evidence that execution has started, such as an active
+worker run or active direct tool execution. A created card or a promise to start is not
+such evidence. Report WATCHING only when there is an identified event or process to watch.
+An empty tracker is inconclusive if it does not cover the route being used.
+
+Missing required specifications, absent review evidence, or an inaccessible promised result
+must prevent accepted completion. Label findings, hypotheses, and unknowns distinctly.
+Do not repeat unchanged status indefinitely: identify a stalled handoff and the specific
+intervention required, without resending work or expanding authority.
 
 Every user-facing update must begin with exactly one state:
 WORKING
@@ -49,3 +64,6 @@ gateway response.
 Start with a supervised read-only check. Confirm that Town reaches the intended durable
 session, the Project Lead consults current records, and no task or worker is created. Then
 send one bounded authorized instruction and verify that it creates only the expected work.
+
+This template guides Town; it does not enforce worker state or QA correctness in code.
+Use the [verification checklist](town-verification.md) to qualify your own workflow.
