@@ -12,6 +12,15 @@ already runs Traefik and Hermes Agent. They keep the bridge in its own container
 only through Traefik, and place the public router labels on the bridge container that
 actually serves MCP.
 
+## Obtain this Town-focused fork
+
+```bash
+git clone https://github.com/robertrichman/hermes-mcp.git town-hermes-connector
+cd town-hermes-connector
+```
+
+Build from this checkout. A generic PyPI installation does not select this fork.
+
 ## Prerequisites
 
 - A working Hermes Agent gateway with its OpenAI-compatible API enabled.
@@ -151,8 +160,9 @@ marked `completed` proves that the Hermes gateway returned a response. It does n
 that a separate worker, Kanban card, CI run, deployment, or other downstream process named
 in that response also finished.
 
-If the result is a handoff or receipt, make one synchronous follow-up through the same
-`session_id`. Ask Hermes to read the current downstream state, then reconcile the answer
+If the result is a handoff or receipt, preserve the downstream tracking reference. Consult the system that records that route,
+or follow up through the same `session_id` when Hermes is needed. Use async mode if that
+request may be slow. Ask Hermes to read the current downstream state, then reconcile the answer
 with the system that owns the facts, such as the project tracker, source repository, CI
 provider, or deployment platform. Do not submit the execution instruction again merely
 because the MCP receipt ended; that can create duplicate work.
@@ -172,4 +182,9 @@ Render `docker compose ... config` first and compare the candidate image with th
 running bridge. Back up the compose file, build the candidate without moving the live
 router, and run local metadata, authentication, durable-session, synchronous, and
 asynchronous checks. Move the public router only after those checks pass. A bridge restart
-clears in-memory OAuth tokens and async job receipts; it does not erase Hermes sessions.
+clears in-memory OAuth tokens, so Town may need reconnection. Completed async job receipts
+persist in SQLite within their retention window when the volume is preserved. Interrupted
+requests have unconfirmed outcomes and are not automatically replayed. A bridge restart
+does not itself erase Hermes sessions.
+
+Finish with the [verification checklist](town-verification.md).
